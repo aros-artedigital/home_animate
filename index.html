@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site com Google Maps</title>
+    <!-- Adicionando Font Awesome via CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="shortcut icon" href="assets/favicon.ico" type="image/x-icon">
+    <!-- Adicionando Animate.css via CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <!-- Adicionando AOS via CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
+    <style>
+        /* Reseta os estilos padrões do navegador */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html{
+            scroll-behavior: smooth;
+        }
+
+        body, html {
+            height: 100%;
+            font-family: Arial, sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        /* Barra de navegação */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 10px;
+            background-color: #333;
+            color: white;
+            position: fixed;
+            width: 100%;
+            z-index: 1000;
+        }
+
+        .navbar .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .navbar .menu {
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar .menu a {
+            color: white;
+            text-decoration: none;
+            margin-left: 10px;
+            padding: 10px 15px;
+            transition: background-color 0.3s ease;
+        }
+
+        .navbar .menu a:hover {
+            background-color: #555;
+            border-radius: 5px;
+        }
+
+        .navbar .menu .social-icons {
+            margin-left: 20px;
+        }
+
+        .navbar .menu .social-icons a {
+            text-decoration: none;
+            color: white;
+            font-size: 18px;
+            margin-left: 10px;
+            display: inline-block;
+            width: 35px;
+            height: 35px;
+            line-height: 35px;
+            border-radius: 50%;
+            background-color: #555;
+            text-align: center;
+            transition: background-color 0.3s ease;
+        }
+
+        .navbar .menu .social-icons a:hover {
+            background-color: #777;
+        }
+
+        /* Estilos para dispositivos móveis */
+        .navbar .menu-toggle {
+            display: none;
+            font-size: 28px;
+            cursor: pointer;
+        }
+
+        .navbar .menu.active {
+            display: flex;
+            flex-direction: column;
+            position: absolute;
+            top: 60px;
+            right: 0;
+            background-color: #333;
+            width: 100%;
+            height: calc(100vh - 60px);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .navbar .menu.active a {
+            margin: 10px 0;
+            width: 100%;
+            text-align: center;
+            padding: 15px 0;
+            border-radius: 0;
+        }
+
+        .navbar .menu.active .social-icons {
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .navbar .menu {
+                display: none;
+            }
+
+            .navbar .menu-toggle {
+                display: block;
+            }
+        }
+
+        /* Estilos para o cabeçalho */
+        .header {
+            position: relative;
+            background: url('assets/design.png') no-repeat center center/cover;
+            height: 100vh;
+            color: white;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        /* Estilos para o carrossel */
+        .carousel {
+            position: relative;
+            max-width: 100%;
+            height: 40%;
+            margin: 0px auto;
+            overflow: hidden;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .carousel-track {
+            display: flex;
+            transition: transform 0.5s ease;
+        }
+
+        .carousel-slide {
+            min-width: 100%;
+            transition: opacity 0.5s ease;
+        }
+
+        .carousel-slide img {
+            width: 100%;
+            display: block;
+        }
+
+        .carousel-nav {
+            position: absolute;
+            top: 50%;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            transform: translateY(-50%);
+        }
+
+        .carousel-nav button {
+            background: rgba(0, 0, 0, 0.5);
+            border: none;
+            color: white;
+            padding: 10px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .carousel-nav button:hover {
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        .carousel-indicators {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            justify-content: center;
+        }
+
+        .carousel-indicators button {
+            border: none;
+            width: 10px;
+            height: 10px;
+            margin: 0 5px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .carousel-indicators button.active {
+            background-color: white;
+        }
+
+        .header .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        /* Estilos para as seções de conteúdo */
+        .content-section {
+            padding: 50px 20px;
+            text-align: center;
+            background-color: #f4f4f4;
+        }
+
+        .content-section h2{
+            font-size: 40px;
+        }
+
+        /* Estilos para os cards */
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .card {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-align: left;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .card img {
+            width: 100%;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .card h3 {
+            margin-bottom: 10px;
+            font-size: 1.5em;
+            color: #333;
+        }
+
+        .card p {
+            color: #555;
+            line-height: 1.6;
+        }
+
+        /* Estilos para as seções de paralaxe */
+        .parallax {
+            height: 500px;
+            background-attachment: fixed;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+
+        .parallax-1 {
+            background-image: url('assets/photo_0.png');
+        }
+
+        .parallax-2 {
+            background-image: url('assets/photo_1.png');
+        }
+
+        /* Estilos para o rodapé */
+        .footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 20px 10px;
+            position: relative;
+        }
+
+        .social-icons {
+            margin: 20px 0;
+        }
+
+        .social-icons a {
+            text-decoration: none;
+            color: white;
+            font-size: 24px;
+            margin: 0 10px;
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            line-height: 50px;
+            border-radius: 50%;
+            background-color: #555;
+            transition: background-color 0.3s ease;
+        }
+
+        .social-icons a:hover {
+            background-color: #777;
+        }
+
+        .social-icons i {
+            vertical-align: middle;
+        }
+
+        /* Botões flutuantes */
+        .floating-icons {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .floating-icons a {
+            display: block;
+            width: 50px;
+            height: 50px;
+            background-color: #25d366;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 50px;
+            margin-bottom: 10px;
+            font-size: 24px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            position: relative; /* Necessário para o tooltip */
+        }
+
+        .floating-icons a.back-to-top {
+            background-color: #555;
+        }
+
+        .floating-icons a:hover {
+            transform: translateY(-5px);
+        }
+
+        /* Efeito de tremida no ícone do WhatsApp */
+        .floating-icons a[href*="wa.me"]:hover {
+            animation: shake 0.5s;
+            animation-iteration-count: infinite;
+        }
+
+        /* Tooltip para o botão do WhatsApp */
+        .floating-icons a[href*="wa.me"]::after {
+            content: 'Contato Whatsapp';
+            position: absolute;
+            top: 50%;
+            left: -150px;
+            transform: translateY(-50%);
+            background-color: #333;
+            color: #fff;
+            padding: 0px 8px; /* Reduzi o espaçamento interno */
+            border-radius: 5px;
+            font-size: 15px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .floating-icons a[href*="wa.me"]:hover::after {
+            opacity: 1;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Estilos para a galeria */
+        .gallery-section {
+            padding: 50px 20px;
+            text-align: center;
+            background-color: #fff;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .gallery-section h2 {
+            margin-bottom: 30px; /* Aumenta a margem inferior */
+            font-size: 40px;
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .gallery img {
+            width: 100%;
+            height: auto;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .gallery img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            padding-top: 100px;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.8);
+            animation: fadeIn 0.5s;
+        }
+
+        .modal-content {
+            margin: auto;
+            display: block;
+            width: 80%;
+            max-width: 700px;
+            animation: zoomIn 0.6s;
+        }
+
+        .modal-content img {
+            width: 100%;
+        }
+
+        .caption {
+            margin: auto;
+            text-align: center;
+            color: #ccc;
+            padding: 10px 0;
+            height: 150px;
+        }
+
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #bbb;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        @keyframes fadeIn {
+            from {opacity: 0;}
+            to {opacity: 1;}
+        }
+
+        @keyframes zoomIn {
+            from {transform: scale(0.1);}
+            to {transform: scale(1);}
+        }
+
+        /* Miniaturas */
+        .thumbnails {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        .thumbnails img {
+            width: 60px;
+            height: 60px;
+            margin: 0 5px;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.3s ease;
+        }
+
+        .thumbnails img:hover {
+            opacity: 1;
+        }
+
+        .active-thumbnail {
+            opacity: 1;
+        }
+
+        /* Box shadow ao passar o mouse */
+        .gallery img {
+            transition: all 0.3s ease;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .gallery img:hover {
+            box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Estilo para o Google Maps */
+        .map-section {
+            width: 100%;
+            height: 500px;
+            background-color: #eaeaea;
+        }
+    </style>
+</head>
+<body data-aos-easing="ease" data-aos-duration="1000" data-aos-delay="0">
+
+    <!-- Barra de Navegação -->
+    <nav class="navbar">
+        <div class="logo">PORTIFÓLIO DIGITAL<img src="" alt=""></div>
+        <div class="menu-toggle" id="mobile-menu"><i class="fas fa-bars"></i></div>
+        <div class="menu">
+            <a href="#home" onclick="toggleMenu()">Home</a>
+            <a href="#about" onclick="toggleMenu()">Sobre Nós</a>
+            <a href="#services" onclick="toggleMenu()">Serviços</a>
+            <a href="#gallery" onclick="toggleMenu()">Galeria</a>
+
+            <div class="social-icons">
+                <a href="https://facebook.com" target="_blank" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                <a href="https://twitter.com" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                <a href="https://instagram.com" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                <a href="https://linkedin.com" target="_blank" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Seção de Cabeçalho -->
+    <header class="header" id="home" data-aos="fade-down">
+        <div class="overlay"></div>
+        <h1 class="animate__animated animate__fadeInDown">Bem-vindo ao Meu Site</h1>
+        <p class="animate__animated animate__fadeInUp">Explore esse universo de possibilidades!</p>
+    </header>
+
+
+     <!-- Carrossel de Imagens -->
+     <div class="carousel">
+        <div class="carousel-track" data-aos="fade-up">
+            <div class="carousel-slide"><img src="assets/photo_2.png" alt="Slide 1"></div>
+            <div class="carousel-slide"><img src="assets/photo_3.jpg" alt="Slide 2"></div>
+            <div class="carousel-slide"><img src="assets/photo_4.png" alt="Slide 3"></div>
+            <div class="carousel-slide"><img src="assets/photo_5.png" alt="Slide 4"></div>
+            <div class="carousel-slide"><img src="assets/photo_6.png" alt="Slide 5"></div>
+            <div class="carousel-slide"><img src="assets/photo_7.png" alt="Slide 6"></div>
+        </div>
+        <div class="carousel-nav">
+            <button class="carousel-prev"><i class="fas fa-chevron-left"></i></button>
+            <button class="carousel-next"><i class="fas fa-chevron-right"></i></button>
+        </div>
+        <div class="carousel-indicators">
+            <button class="active"></button>
+            <button></button>
+            <button></button>
+            <button></button>
+            <button></button>
+            <button></button>
+        </div>
+    </div>
+
+
+    <!-- Seção de Conteúdo 1 -->
+    <section class="content-section" id="about">
+        <h2 data-aos="fade-right">Sobre Nós</h2>
+        <div class="cards-container">
+            <div class="card animate__animated animate__zoomIn">
+                <img src="assets/photo_1.png" alt="Imagem do Card 1">
+                <h3>Missão</h3>
+                <p>Nossa missão é oferecer o melhor serviço para nossos clientes, com ética e excelência.</p>
+            </div>
+            <div class="card animate__animated animate__zoomIn">
+                <img src="assets/photo_2.png" alt="Imagem do Card 2">
+                <h3>Visão</h3>
+                <p>Visamos ser líderes em nosso setor, inovando continuamente e superando expectativas.</p>
+            </div>
+            <div class="card animate__animated animate__zoomIn">
+                <img src="assets/photo_3.jpg" alt="Imagem do Card 3">
+                <h3>Valores</h3>
+                <p>Nossos valores incluem integridade, compromisso, e respeito por nossos clientes e parceiros.</p>
+            </div>
+            <div class="card animate__animated animate__zoomIn">
+                <img src="assets/photo_4.png" alt="Imagem do Card 4">
+                <h3>Equipe</h3>
+                <p>Contamos com uma equipe altamente qualificada, pronta para atender todas as necessidades.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Seção de Paralaxe 1 -->
+    <div class="parallax parallax-1" data-aos="fade-in"></div>
+
+    <!-- Seção de Conteúdo 2 -->
+    <section class="content-section" id="services">
+        <h2 data-aos="fade-left">Nossos Serviços</h2>
+        <div class="cards-container">
+            <div class="card animate__animated animate__fadeInLeft">
+                <img src="assets/photo_7.png" alt="Imagem do Serviço 1">
+                <h3>Consultoria</h3>
+                <p>Oferecemos consultoria especializada para melhorar os resultados do seu negócio.</p>
+            </div>
+            <div class="card animate__animated animate__fadeInUp">
+                <img src="assets/photo_6.png" alt="Imagem do Serviço 2">
+                <h3>Desenvolvimento</h3>
+                <p>Desenvolvemos soluções personalizadas para atender às necessidades específicas de cada cliente.</p>
+            </div>
+            <div class="card animate__animated animate__fadeInRight">
+                <img src="assets/photo_5.png" alt="Imagem do Serviço 3">
+                <h3>Suporte</h3>
+                <p>Nossa equipe de suporte está disponível 24/7 para ajudar em qualquer situação.</p>
+            </div>
+            <div class="card animate__animated animate__fadeInDown">
+                <img src="assets/photo_4.png" alt="Imagem do Serviço 4">
+                <h3>Treinamento</h3>
+                <p>Oferecemos treinamento especializado para capacitar sua equipe e otimizar resultados.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Seção com Google Maps -->
+    <section class="map-section" id="map">
+        <div>
+            <iframe class="map-section" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15557.153938906482!2d-38.441611888906856!3d-12.88916233157086!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x716110e32e31007%3A0xf102bfd2c4d4ea8d!2s%C3%81guas%20Claras%2C%20Salvador%20-%20BA!5e0!3m2!1spt-BR!2sbr!4v1724193202830!5m2!1spt-BR!2sbr" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>   
+    </section>
+
+    <!-- Seção de Paralaxe 2 -->
+    <div class="parallax parallax-2" data-aos="fade-up"></div>
+
+    <!-- Galeria de Imagens -->
+    <section class="gallery-section" id="gallery">
+        <h2 data-aos="zoom-in">Galeria de Imagens</h2>
+        <div class="gallery">
+            <img src="assets/photo_0.png" alt="Imagem 1" class="animate__animated animate__fadeIn">
+            <img src="assets/photo_1.png" alt="Imagem 2" class="animate__animated animate__fadeIn">
+            <img src="assets/photo_3.jpg" alt="Imagem 3" class="animate__animated animate__fadeIn">
+            <img src="assets/photo_4.png" alt="Imagem 4" class="animate__animated animate__fadeIn">
+            <img src="assets/photo_5.png" alt="Imagem 5" class="animate__animated animate__fadeIn">
+            <img src="assets/photo_6.png" alt="Imagem 6" class="animate__animated animate__fadeIn">
+            <img src="assets/photo_7.png" alt="Imagem 7" class="animate__animated animate__fadeIn">
+            <img src="assets/photo_1.png" alt="Imagem 8" class="animate__animated animate__fadeIn">
+            <img src="assets/photo_3.png" alt="Imagem 9" class="animate__animated animate__fadeIn">
+            <img src="assets/photo_5.png" alt="Imagem 10" class="animate__animated animate__fadeIn">
+        </div>
+    </section>
+
+    <!-- Seção de Rodapé -->
+    <footer class="footer" id="contact">
+        <div class="social-icons">
+            <a href="https://facebook.com" target="_blank" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+            <a href="https://twitter.com" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+            <a href="https://instagram.com" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="https://linkedin.com" target="_blank" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+        </div>
+        <p>&copy; 2024 Meu Site. Todos os direitos reservados.</p>
+    </footer>
+
+    <!-- Ícones Flutuantes -->
+    <div class="floating-icons">
+        <a href="#home" class="back-to-top" aria-label="Voltar ao Topo"><i class="fas fa-arrow-up"></i></a>
+        <a href="https://wa.me/5599999999999" target="_blank" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+    </div>
+
+    <!-- Modal -->
+    <div id="myModal" class="modal">
+        <span class="close">&times;</span>
+        <img class="modal-content" id="imgModal">
+        <div class="caption"></div>
+        <div class="thumbnails">
+            <!-- Thumbnails serão adicionados dinamicamente -->
+        </div>
+    </div>
+
+    <script>
+        // Modal Script
+        const modal = document.getElementById("myModal");
+        const modalImg = document.getElementById("imgModal");
+        const captionText = document.querySelector(".caption");
+        const gallery = document.querySelectorAll(".gallery img");
+        const thumbnails = document.querySelector(".thumbnails");
+        let activeThumbnail;
+
+        gallery.forEach((img, index) => {
+            img.addEventListener("click", function() {
+                modal.style.display = "block";
+                modalImg.src = this.src;
+                captionText.innerHTML = this.alt;
+                
+            });
+        });
+
+        // Fechar o modal
+        const span = document.getElementsByClassName("close")[0];
+        span.onclick = function() {
+            modal.style.display = "none";
+        };
+
+        // Fechar ao clicar fora da imagem
+        window.onclick = function(event) {
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
+        };
+
+        // Menu Responsivo
+        const menuToggle = document.getElementById('mobile-menu');
+        const menu = document.querySelector('.navbar .menu');
+
+        menuToggle.addEventListener('click', () => {
+            menu.classList.toggle('active');
+        });
+
+        function toggleMenu() {
+            menu.classList.remove('active');
+        }
+
+
+         // Carrossel Script
+         const track = document.querySelector('.carousel-track');
+        const slides = Array.from(track.children);
+        const nextButton = document.querySelector('.carousel-next');
+        const prevButton = document.querySelector('.carousel-prev');
+        const indicators = document.querySelectorAll('.carousel-indicators button');
+
+        let currentIndex = 0;
+        let interval;
+
+        function updateCarousel(position) {
+            track.style.transform = `translateX(-${position * 100}%)`;
+            indicators.forEach((indicator, index) => {
+                indicator.classList.toggle('active', index === position);
+            });
+        }
+
+        function autoPlay() {
+            interval = setInterval(() => {
+                currentIndex = (currentIndex + 1) % slides.length;
+                updateCarousel(currentIndex);
+            }, 3000); // Muda de slide a cada 3 segundos
+        }
+
+        function stopAutoPlay() {
+            clearInterval(interval);
+        }
+
+        nextButton.addEventListener('click', () => {
+            stopAutoPlay();
+            currentIndex = (currentIndex + 1) % slides.length;
+            updateCarousel(currentIndex);
+            autoPlay();
+        });
+
+        prevButton.addEventListener('click', () => {
+            stopAutoPlay();
+            currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+            updateCarousel(currentIndex);
+            autoPlay();
+        });
+
+        indicators.forEach((indicator, index) => {
+            indicator.addEventListener('click', () => {
+                stopAutoPlay();
+                currentIndex = index;
+                updateCarousel(currentIndex);
+                autoPlay();
+            });
+        });
+
+        // Inicia a animação automática do carrossel
+        autoPlay();
+
+        // Inicializar Google Maps
+        function initMap() {
+            var mapProp = {
+                center: new google.maps.LatLng(-12.9714, -38.5014), // Coordenadas de Salvador, Bahia
+                zoom: 12,
+            };
+            var map = new google.maps.Map(document.getElementById("googleMap"), mapProp);
+        }
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap" async defer></script>
+    <!-- Adicionando AOS via CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+    <script>
+        AOS.init();
+    </script>
+</body>
+</html>
